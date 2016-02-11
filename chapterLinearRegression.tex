@@ -178,3 +178,387 @@ In domains with lots of data, simple methods can work surprisingly well (Halevy 
 \section{Bayesian linear regression}
 TODO
 
+\section{Linear Regression Diagnostic}
+
+Considering the linear model \(y = X_{n \times p}\beta_{p} + \epsilon\),
+and its commonly used estimator OLSE:
+\(\hat{\beta} = \ (X^{\top}X)^{- 1}X^{\top}y\).
+
+There several common (linear) regression diagnostic need to be done:
+
+\begin{enumerate}
+	\def\labelenumi{\arabic{enumi}.}
+	\item
+	Unusual and influential data, Outliers
+	\item
+	Normality
+	\item
+	Nonconstant error of variance
+	\item
+	Multicollinearity
+	\item
+	Non-linearity
+	\item
+	Model Specification
+	\item
+	Independence
+\end{enumerate}
+
+\subsection{Unusual and influential data,
+	Outliers}\label{unusual-and-influential-data-outliers}
+
+\begin{enumerate}
+	\def\labelenumi{\alph{enumi}.}
+	\item
+	What is \textbf{influential point}? Howto detect?
+	\item
+	What is \textbf{outliers}? Howto detect?
+\end{enumerate}
+
+\begin{figure}\centering
+	\includegraphics[scale=.6]{./figures/lm_ivo.png}
+	\caption{Influential v.s. outliers}
+\end{figure}
+
+In short, we summarize the distinction between these two concepts as
+follows:
+
+\begin{itemize}
+	\item
+	A data point is \textbf{influential} if it unduly \emph{influences any
+		part of a regression analysis}, such as the predicted responses, the
+	estimated slope coefficients, or the hypothesis test results.
+	(\textbf{+}) changes \(R^{2}\), \emph{P}-value, \ldots{}
+	\item
+	An \textbf{outlier} is a data point whose response
+	\emph{\textbf{y}}\footnote{In many cases, one could also define
+		outliers corresponding to \emph{\textbf{X}} instead of
+		\emph{\textbf{y}}.} does not follow the \emph{general trend of the
+		rest of the data}. (\textbf{x})
+\end{itemize}
+
+An easy way to determine if the data point is influential is to find the
+best fitting line twice --- once with the given data point included and
+once the given data point excluded. Formally, \textbf{leverage}
+statistics could be used to identify extreme values.
+
+Denote the projection matrix \emph{H} as \(X(X^{\top}X)^{- 1}X^{\top}\),
+and we could indeed rewrite the prediction
+into\(\hat{y_{}} = X\hat{\beta} = H\ y\), which clearly indicates that
+the prediction is a \emph{linear combination} of observed y. This is
+also the reason why it is called regression. Besides, one may also
+notice that the i-th prediction is determined by the i-th row of the
+projection matrix. Leverage is defined as the i-i th entry of the
+projection matrix, i.e. \(H_{\text{ii}}\), and as it is called, could
+somewhat determine the value of the i-th prediction value( as
+\({\hat{y}}_{i} = H_{i}\text{\ y}\)). Some linear algebra shows
+
+\begin{itemize}
+	\item
+	\(trace(H)\  = sum\ of\ eigen\ value = \ p\  = \ \sum_{i = 1}^{n}H_{\text{ii}}\)
+	\item
+	As H is the projection matrix (H\textgreater{}0 and orthogonal),
+	\textbf{leverage} is always in range {[}0,1{]} \footnote{Every entry
+		of an orthogonal matrix must be between 0 and 1, as the L2 norm of
+		any row/column =1}
+	\item
+	The leverage \(H_{\text{ii}}\) is a measure of the distance between
+	the X value for the i-th data point and the mean of the X values for
+	all n data points.
+\end{itemize}
+
+\noindent\textbf{General rule: 3 times rule}
+
+If
+\(H_{\text{ii}} > 3\frac{p}{n} = 3\frac{1}{n}\sum_{i = 1}^{n}H_{\text{ii}}\)
+, then we say `` we could identify x values that are \textbf{extreme}
+and therefore \textbf{potentially influential} on our regression
+analysis.''
+
+Also, there are other summary statistics, eg: studentized residual($t_i=\frac{\hat{\epsilon}_i}{\hat{\sigma}\sqrt{1-h_{ii}}}$),
+Cook's D, DFFITS( studentized residual times
+$\sqrt{h_{ii}/(1-h_{ii})}$
+and DFBETAs(Thumb of rule: \(2/\sqrt{n}\)).
+
+\subsection{Normality}\label{normality}
+
+It is often not critical but helpful to set the normal assumption in
+linear regression. Normality offers a way to \textbf{test} whether the
+coefficients were 0. Please notice that we could still use OLSE without
+normal assumption to \textbf{estimate}\(\hat{\beta}\)when NO HYPOTHESIS
+TESTING IS NEEDED.
+
+\begin{itemize}
+	\item
+	QQ Plot (of residual);
+	\item
+	KS test among many others (e.g. the Kolmogorov-Smirnov test, the
+	Shapiro-Wilk test, the Jarque-Bera test, and the
+	\textbf{Anderson-Darling test}\footnote{Most used one.}).
+\end{itemize}
+
+The causes of non-normality varies, eg.
+
+\begin{enumerate}
+	\def\labelenumi{\alph{enumi}.}
+	\item
+	The prediction error (\textbf{NOT X!!!!}) is not normal;
+	\item
+	the data is not linearly constructed/not additive(e.g. y=x1*x2 or
+	x1*x1);
+	\item
+	there are several subgroups in the data that have different
+	statistical properties.
+\end{enumerate}
+
+\subsection{Nonconstant error of
+	variance}\label{nonconstant-error-of-variance}
+
+One important note first: OLS is still the unbiased estimator but not
+the BLUE(best unbiased linear estimator for \(c^{\top}y\)).
+
+\emph{Proof}:
+
+\begin{enumerate}
+	\def\labelenumi{\arabic{enumi}.}
+	\item
+	unbiased estimator:
+	\(E\lbrack\hat{\beta}\rbrack = E\lbrack\ (X^{\top}X)^{- 1}X^{\top}y\rbrack = E\lbrack\ (X^{\top}X)^{- 1}X^{\top}(X\beta + \epsilon)\rbrack = \beta\ \)
+	\item
+	not BLUE: Assume \(\epsilon \sim N(0,\Sigma)\), we typically could use
+	the updated model:
+	\(y' = \Sigma^{- \frac{1}{2}}y = x'\beta + \epsilon' = \Sigma^{- \frac{1}{2}}X_{n \times p}\beta_{p} + \Sigma^{- \frac{1}{2}}\epsilon\),
+	hence BLUE is OLSE for the updated model. Another way to interpret
+	this is MLE. MLE, with the normal assumption, could be finally
+	simplify to a weighted least square, which is exactly same as previous
+	result. \textbf{QED}
+\end{enumerate}
+
+It is also call violence of \textbf{homoscedasticity of variances/heteroscedasticity}. Most of time, one could read this through
+\emph{\textbf{(adjusted) residuals vs predicted values}} or even vs
+variables.
+
+If one does find any heteroscedasticity, variance stabilizing
+transformation could be used, such as Box-Cox transformation\footnote{Box-Cox
+	is often used to deal with normality( SAS \textbf{PROC} TRANSREG)} and
+more. The reason is simply:
+
+\(Var(f(x))\  \simeq f'(\mu)Var(X)\).
+
+Remember that: in order to perform hypothesis testing on transformed
+data, we need to use Delta method again to get the Wald-Confidence
+interval.
+
+\emph{Useful tips}
+
+\begin{quote}
+	z = sqrt(count); /* \textbf{counts} (\emph{Poisson distribution}) */\\
+	/* variance proportional to mean */
+	
+	z = log(conc); /* concentrations, weights (log normal) */\\
+	/* SD proportional to mean */\\
+	/* \emph{constant coefficient} of variation (CV) */
+	
+	z = arsin(sqrt(prop));/* \textbf{proportions} (0-1) */
+	
+	z = arsin(sqrt(pct/100));/* \textbf{percentages} (0-100) */\\
+	/* (\emph{Binomial distribution}) */\\
+	/* variance proportional highest in middle*/
+\end{quote}
+
+A special case: the equality of variances for a variable calculated for
+two or more group
+
+Please read
+\href{https://en.wikipedia.org/wiki/Levene\%27s_test}{\emph{Levene's
+		test}}, Bartlett's Test and Brown--Forsythe test.
+
+\subsection{Multicollinearity}\label{multicollinearity}
+
+Multicollinearity is a statistical phenomenon that is commonly seen in
+linear model. Strictly speaking, it means a perfect linear relationship
+among explanatory variables, i.e. \(rank(X) < min(n,p)\).
+
+Considering the estimation equation of LM:
+\(\hat{\beta} = (X^{\top}X)^{- 1}X^{\top}Y\),\footnote{One can still use
+	Moore--Penrose pseudoinverse or other pseudo-inverse (- or + inverse)
+	to get the BLUE.} and hence \(SE(\hat{\beta})\) if the matrix is not
+full rank, then the estimation has:
+
+\emph{\textbf{\emph{Cons}}}
+
+\begin{enumerate}
+	\def\labelenumi{\arabic{enumi}.}
+	\item
+	Multicollinearity inflates the variances of the parameter estimates
+	and hence this may lead to lack of statistical significance of
+	individual predictor variables even though the overall model may be
+	significant.
+	\item
+	The presence of multicollinearity can cause serious problems with the
+	estimation of \(\beta\) and the interpretation.
+\end{enumerate}
+
+\subsubsection{Detection}\label{detection}
+
+\begin{enumerate}
+	\def\labelenumi{\arabic{enumi}.}
+	\item
+	\textbf{Examination of Correlation Matrix}: Large correlation
+	coefficients in the correlation matrix of predictor variables indicate
+	multicollinearity. If there is a multicollinearity between any two
+	predictor variables, then the correlation coefficient between these
+	two variables will be near to unity.
+	\item
+	\textbf{Variance Inflation Factor (VIF)}: j-VIF is defined as the
+	\(\frac{1}{1 - {R_{j}}^{2}}\), where \({R_{j}}^{2}\)denotes the
+	\emph{coefficient of determination}\footnote{coefficient of
+		determination is \textbf{SS}res/\textbf{SS}total} when
+	\(X_{j} \sim X_{- j}\). Rule of Thumb: If \textbf{VIF
+		\textgreater{}5,10}\footnote{Montgomery, Douglas C., and Douglas C.
+		Montgomery. \emph{Design and analysis of experiments}. Vol. 7. New
+		York: Wiley, 1984.}, then we say the multicollinearity is heavy.
+	\item
+	\textbf{Eigensystem Analysis of Correlation Matrix}: eigensystem plays
+	an essential role in regression analysis. Rule of Thumb: If one or
+	more of the eigenvalues are small (close to zero) and the
+	corresponding condition number(\(\lambda_{\max}/\lambda_{j}\)) is
+	large, then it indicates multicollinearity.
+\end{enumerate}
+
+Indeed, 1 and 3 are equivalent.
+
+\subsubsection{Solution}\label{solution}
+
+Manually select, \textbf{Stepwise} method, \textbf{PLS}, \textbf{PCA},
+\textbf{Shrinkage} regression(Ridge/LASSO, etc). Check topic 2(Linear
+Model Extension) for reference.
+
+For stepwise, we need to pay attention to AIC/BIC criterion\footnote{Modifying
+	comments from Dr Runze
+	Li:\href{https://methodology.psu.edu/media/techreports/12-119.pdf}{\emph{https://methodology.psu.edu/media/techreports/12-119.pdf}}},
+they are both \textbf{penalized-likelihood criteria}. They are sometimes
+used for \textbf{choosing best predictor subsets in regression} and
+often used for comparing non-nested models, which ordinary statistical
+tests cannot do. The AIC or BIC for a model is usually written in the
+form \(\mathbf{- 2\ Log\ Lik\  + \ k \times p}\), where \emph{Lik} is
+the likelihood function, \emph{p} is the number of parameters in the
+model, and
+
+\begin{table}
+	\centering
+	\begin{tabularx}{.475\textwidth}{|l|l|X|}
+		\hline
+		\textbf{Model} & \textbf{k} & \textbf{Comment}\\\hline
+		AIC & 2 & AIC is an estimate of a \textbf{constant} plus the relative
+		distance between the unknown true likelihood function of the data and
+		the fitted likelihood function of the model, so that a lower AIC means a
+		model is considered to be closer to the truth. \textbf{ALWAYS chooses
+			too big a model.}\\
+		BIC & kog(n) & BIC is an estimate of a function of the \textbf{posterior
+			probability} of a model being true, under a certain Bayesian setup, so
+		that a lower BIC means that a model is considered to be more likely to
+		be the true model. \textbf{MORE likely than AIC to choose too small a
+			model.}\\\hline
+	\end{tabularx}
+	\caption{AIC BIC short summary.}\label{table::aicbiclm}
+\end{table}
+
+
+Both criteria are based on \textbf{various assumptions and asymptotic
+	approximations}. Each, despite its heuristic usefulness, has therefore
+been criticized as having questionable validity for real world data. But
+despite various subtle theoretical differences, their only difference in
+practice is the size of the penalty; BIC penalizes model complexity more
+heavily. The only way they should disagree is when \textbf{AIC chooses a
+	larger model than BIC}.
+
+AIC and BIC are both approximately correct according to a different goal
+and a different set of asymptotic assumptions. Both sets of assumptions
+have been criticized as unrealistic. Understanding the difference in
+their practical behavior is easiest if we consider the simple case of
+comparing two nested models. In such a case, several authors have
+pointed out that IC's become equivalent to likelihood ratio tests with
+different alpha levels. Checking a chi-squared table, we see that AIC
+becomes like a significance test at alpha=.16, and BIC becomes like a
+significance test with alpha depending on sample size, e.g., .13 for n =
+10, .032 for n = 100, .0086 for n = 1000, .0024 for n = 10000. Remember
+that power for any given alpha is increasing in n. Thus, AIC always has
+a chance of choosing too big a model, regardless of n. BIC has very
+little chance of choosing too big a model if n is sufficient, but it has
+a larger chance than AIC, for any given n, of choosing too small a
+model.
+
+So what's the bottom line? In general, it might be best to use AIC and
+BIC together in model selection. For example, in selecting the number of
+latent classes in a model, if BIC points to a three-class model and AIC
+points to a five-class model, it makes sense to select from models with
+3, 4 and 5 latent classes. AIC is better in situations when a false
+negative finding would be considered more misleading than a false
+positive, and BIC is better in situations where a false positive is as
+misleading as, or more misleading than, a false
+negative.
+
+\subsection{Summary}\label{summary}
+
+\begin{enumerate}
+	\def\labelenumi{\arabic{enumi}.}
+	\item
+	Detecting Unusual and Influential Data
+	
+	\begin{enumerate}
+		\def\labelenumii{\alph{enumii}.}
+		\item
+		scatterplots of the dependent variables versus the independent
+		variable
+		\item
+		looking at the largest values of the studentized residuals,
+		leverage, Cook's D, DFFITS and DFBETAs
+	\end{enumerate}
+	\item
+	Tests for Normality of Residuals Tests for Heteroscedasticity
+	
+	\begin{enumerate}
+		\def\labelenumii{\alph{enumii}.}
+		\item
+		kernel \textbf{density plot (e.g, HIST)}
+		\item
+		\textbf{q}uantile-\textbf{q}uantile plots
+		\item
+		Shapiro-Wilk W test/KS test
+		\item
+		residual plot ( residual versus predicted values )
+		\item
+		White test
+	\end{enumerate}
+	\item
+	Tests for Multicollinearity
+	
+	\begin{enumerate}
+		\def\labelenumii{\alph{enumii}.}
+		\item
+		VIF
+		\item
+		Cov matrix
+	\end{enumerate}
+	\item
+	Tests for Non-Linearity
+	
+	\begin{enumerate}
+		\def\labelenumii{\alph{enumii}.}
+		\item
+		scatterplot of independent variable versus dependent variable
+	\end{enumerate}
+	\item
+	Tests for Model Specification/Independencies
+	
+	\begin{enumerate}
+		\def\labelenumii{\alph{enumii}.}
+		\item
+		time series
+		\item
+		Durbin-Watson test
+	\end{enumerate}
+	\item
+	Test of skewness: use kurtosis
+\end{enumerate}
